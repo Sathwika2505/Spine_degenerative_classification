@@ -1,9 +1,13 @@
 
 pipeline{
     agent any
-    
+
     stages{
-        
+        stage("Install Dependencies") {
+            steps {
+                sh 'pip install -r requirements.txt'
+            }
+        }
         stage("Extract Data"){
             steps{
                 sh 'python3 data_extraction.py'
@@ -18,7 +22,8 @@ pipeline{
             steps{
                 sh 'python3 data_transformation.py'
             }
-        }      
+        }
+      
     }
     post{
        
