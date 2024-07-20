@@ -28,7 +28,7 @@ pipeline{
     post{
        
         always {
-            archiveArtifacts artifacts: 'spine-degenerative-classification.pkl', onlyIfSuccessful: true
+            archiveArtifacts artifacts: 'spine-degenerative-mriscan-classification.pkl', onlyIfSuccessful: true
         }
             }
         
