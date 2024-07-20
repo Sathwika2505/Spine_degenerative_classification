@@ -1,0 +1,30 @@
+
+pipeline{
+    agent any
+    
+    stages{
+        
+        stage("Extract Data"){
+            steps{
+                sh 'python3 data_extraction.py'
+            }
+        }
+        stage("Visualize Data"){
+            steps{
+                sh 'python3 datavisualization.py'
+            }
+        }
+        stage("Transform Data"){
+            steps{
+                sh 'python3 data_transformation.py'
+            }
+        }      
+    }
+    post{
+       
+        always {
+            archiveArtifacts artifacts: 'spine-degenerative-classification.pkl', onlyIfSuccessful: true
+        }
+            }
+        
+}
