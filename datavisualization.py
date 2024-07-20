@@ -136,6 +136,6 @@ if os.path.isdir(study_path):
 
                 # Copy the JPG file to the current working directory
                 shutil.copy2(jpg_path, new_jpg_path)
-                print(f"Copied {jpg_path} to {new_jpg_path}")
+                #print(f"Copied {jpg_path} to {new_jpg_path}")
 
 print("Script finished successfully.")
