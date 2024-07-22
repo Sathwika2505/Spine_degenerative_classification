@@ -60,71 +60,7 @@ df = df.fillna(-100)
 label2id = {'Normal/Mild': 0, 'Moderate':1, 'Severe':2}
 df = df.replace(label2id)
 
-class RSNA24Dataset(Dataset):
-  def __init__(self, df, phase='train', transform=None):
-      self.df = df
-      self.transform = transform
-      self.phase = phase
-      print("===============df : ",df)
-  
-  def __len__(self):
-      return len(self.df)
 
-  def __getitem__(self, idx):
-      x = np.zeros((512, 512, IN_CHANS), dtype=np.uint8)
-      t = self.df.iloc[idx]
-      st_id = int(t['study_id'])
-      label = t[1:].values.astype(np.int64)
-      print("st_id----------", st_id)
-      print("label----------", label)
-      # Sagittal T1
-      for i in range(0, 10, 1):
-          try:
-              p = f'./cvt_jpg/{st_id}/Sagittal T1/{i:03d}.jpg'
-              img = Image.open(p).convert('L')
-              img = np.array(img)
-              x[..., i] = img.astype(np.uint8)
-          except:
-              print(f'failed to load on {st_id}, Sagittal T1')
-              pass
-          
-      # Sagittal T2/STIR
-      for i in range(0, 10, 1):
-          try:
-              p = f'./cvt_jpg/{st_id}/Sagittal T2_STIR/{i:03d}.jpg'
-              img = Image.open(p).convert('L')
-              img = np.array(img)
-              x[..., i+10] = img.astype(np.uint8)
-          except:
-              print(f'failed to load on {st_id}, Sagittal T2/STIR')
-              pass
-          
-      # Axial T2
-      axt2 = glob(f'./cvt_jpg/{st_id}/Axial T2/*.jpg')
-      axt2 = sorted(axt2)
-  
-      step = len(axt2) / 10.0
-      st = len(axt2)/2.0 - 4.0*step
-      end = len(axt2)+0.0001
-              
-      for i, j in enumerate(np.arange(st, end, step)):
-          try:
-              p = axt2[max(0, int((j-0.5001).round()))]
-              img = Image.open(p).convert('L')
-              img = np.array(img)
-              x[..., i+20] = img.astype(np.uint8)
-          except:
-              print(f'failed to load on {st_id}, Sagittal T2/STIR')
-              pass  
-          
-      assert np.sum(x)>0
-          
-      if self.transform is not None:
-          x = self.transform(image=x)['image']
-
-      x = x.transpose(2, 0, 1)
-              
-      return x, label
             
 AUG_PROB = 0.75
 IMG_SIZE = [512, 512]
@@ -151,7 +87,73 @@ def transform_data():
         A.CoarseDropout(max_holes=16, max_height=64, max_width=64, min_holes=1, min_height=8, min_width=8, p=AUG_PROB),    
         A.Normalize(mean=0.5, std=0.5)
     ])
-    
+
+    class RSNA24Dataset(Dataset):
+          def __init__(self, df, phase='train', transform=None):
+              self.df = df
+              self.transform = transform
+              self.phase = phase
+              print("===============df : ",df)
+          
+          def __len__(self):
+              return len(self.df)
+        
+          def __getitem__(self, idx):
+              x = np.zeros((512, 512, IN_CHANS), dtype=np.uint8)
+              t = self.df.iloc[idx]
+              st_id = int(t['study_id'])
+              label = t[1:].values.astype(np.int64)
+              print("st_id----------", st_id)
+              print("label----------", label)
+              # Sagittal T1
+              for i in range(0, 10, 1):
+                  try:
+                      p = f'./cvt_jpg/{st_id}/Sagittal T1/{i:03d}.jpg'
+                      img = Image.open(p).convert('L')
+                      img = np.array(img)
+                      x[..., i] = img.astype(np.uint8)
+                  except:
+                      print(f'failed to load on {st_id}, Sagittal T1')
+                      pass
+                  
+              # Sagittal T2/STIR
+              for i in range(0, 10, 1):
+                  try:
+                      p = f'./cvt_jpg/{st_id}/Sagittal T2_STIR/{i:03d}.jpg'
+                      img = Image.open(p).convert('L')
+                      img = np.array(img)
+                      x[..., i+10] = img.astype(np.uint8)
+                  except:
+                      print(f'failed to load on {st_id}, Sagittal T2/STIR')
+                      pass
+                  
+              # Axial T2
+              axt2 = glob(f'./cvt_jpg/{st_id}/Axial T2/*.jpg')
+              axt2 = sorted(axt2)
+          
+              step = len(axt2) / 10.0
+              st = len(axt2)/2.0 - 4.0*step
+              end = len(axt2)+0.0001
+                      
+              for i, j in enumerate(np.arange(st, end, step)):
+                  try:
+                      p = axt2[max(0, int((j-0.5001).round()))]
+                      img = Image.open(p).convert('L')
+                      img = np.array(img)
+                      x[..., i+20] = img.astype(np.uint8)
+                  except:
+                      print(f'failed to load on {st_id}, Sagittal T2/STIR')
+                      pass  
+                  
+              assert np.sum(x)>0
+                  
+              if self.transform is not None:
+                  x = self.transform(image=x)['image']
+        
+              x = x.transpose(2, 0, 1)
+                      
+              return x, label
+            
     model_dataset = RSNA24Dataset(df, phase='train', transform=data_transform)
     
     #model_dataset = datasets.ImageFolder(output_dir, transform=data_transform)
