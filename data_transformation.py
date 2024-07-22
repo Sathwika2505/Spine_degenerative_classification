@@ -35,31 +35,31 @@ from torchvision.datasets import ImageFolder
 from torchvision import datasets
 import dill as pickle
 
-def read_csv_from_s3(csv_filename):
-    s3 = boto3.client('s3')
-    bucket_name = 'deeplearning-mlops-demo'
-    file_key = 'rsna-2024-lumbar-spine-degenerative-classification.zip'
-    with BytesIO() as zip_buffer:
-        s3.download_fileobj(bucket_name, file_key, zip_buffer)
-        zip_buffer.seek(0)
-        with zipfile.ZipFile(zip_buffer, 'r') as zip_ref:    
-            with zip_ref.open(csv_filename) as csv_file:
-                csv_data = pd.read_csv(csv_file)
-                print("CSV file read successfully.")
-                print(csv_data.head())
-    return csv_data
-
-csv_filename = 'train.csv'
-df = read_csv_from_s3(csv_filename)
-df = df.fillna(-100)
-label2id = {'Normal/Mild': 0, 'Moderate': 1, 'Severe': 2}
-df = df.replace(label2id)
-
-AUG_PROB = 0.75
-IMG_SIZE = [512, 512]
-IN_CHANS = 30
-
 def transform_data():
+    def read_csv_from_s3(csv_filename):
+        s3 = boto3.client('s3')
+        bucket_name = 'deeplearning-mlops-demo'
+        file_key = 'rsna-2024-lumbar-spine-degenerative-classification.zip'
+        with BytesIO() as zip_buffer:
+            s3.download_fileobj(bucket_name, file_key, zip_buffer)
+            zip_buffer.seek(0)
+            with zipfile.ZipFile(zip_buffer, 'r') as zip_ref:    
+                with zip_ref.open(csv_filename) as csv_file:
+                    csv_data = pd.read_csv(csv_file)
+                    print("CSV file read successfully.")
+                    print(csv_data.head())
+        return csv_data
+
+    csv_filename = 'train.csv'
+    df = read_csv_from_s3(csv_filename)
+    df = df.fillna(-100)
+    label2id = {'Normal/Mild': 0, 'Moderate': 1, 'Severe': 2}
+    df = df.replace(label2id)
+    
+    AUG_PROB = 0.75
+    IMG_SIZE = [512, 512]
+    IN_CHANS = 30
+    
     data_transform = A.Compose([
         A.RandomBrightnessContrast(brightness_limit=(-0.2, 0.2), contrast_limit=(-0.2, 0.2), p=AUG_PROB),
         A.OneOf([
