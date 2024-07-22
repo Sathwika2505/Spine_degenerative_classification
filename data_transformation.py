@@ -7,7 +7,7 @@ import cv2
 import math, random
 import numpy as np
 import pandas as pd
-from glob import glob
+from glob import glob as glob_glob  # Change import to avoid name conflict
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 from sklearn.model_selection import KFold
@@ -31,20 +31,35 @@ import torchvision
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader, Dataset
 import requests
-from PIL import Image
-from io import BytesIO
-import torch
-import os
 from torchvision.datasets import ImageFolder
 from torchvision import datasets
 import dill as pickle
 
+def read_csv_from_s3(csv_filename):
+    s3 = boto3.client('s3')
+    bucket_name = 'deeplearning-mlops-demo'
+    file_key = 'rsna-2024-lumbar-spine-degenerative-classification.zip'
+    with BytesIO() as zip_buffer:
+        s3.download_fileobj(bucket_name, file_key, zip_buffer)
+        zip_buffer.seek(0)
+        with zipfile.ZipFile(zip_buffer, 'r') as zip_ref:    
+            with zip_ref.open(csv_filename) as csv_file:
+                csv_data = pd.read_csv(csv_file)
+                print("CSV file read successfully.")
+                print(csv_data.head())
+    return csv_data
+
+csv_filename = 'train.csv'
+df = read_csv_from_s3(csv_filename)
+df = df.fillna(-100)
+label2id = {'Normal/Mild': 0, 'Moderate': 1, 'Severe': 2}
+df = df.replace(label2id)
+
+AUG_PROB = 0.75
+IMG_SIZE = [512, 512]
+IN_CHANS = 30
+
 def transform_data():
-    
-    AUG_PROB = 0.75
-    IMG_SIZE = [512, 512]
-    IN_CHANS = 30
-    
     data_transform = A.Compose([
         A.RandomBrightnessContrast(brightness_limit=(-0.2, 0.2), contrast_limit=(-0.2, 0.2), p=AUG_PROB),
         A.OneOf([
@@ -63,26 +78,6 @@ def transform_data():
         A.CoarseDropout(max_holes=16, max_height=64, max_width=64, min_holes=1, min_height=8, min_width=8, p=AUG_PROB),    
         A.Normalize(mean=0.5, std=0.5)
     ])
-    def read_csv_from_s3(csv_filename):
-        s3 = boto3.client('s3')
-        bucket_name = 'deeplearning-mlops-demo'
-        file_key = 'rsna-2024-lumbar-spine-degenerative-classification.zip'
-        with BytesIO() as zip_buffer:
-            s3.download_fileobj(bucket_name, file_key, zip_buffer)
-            zip_buffer.seek(0)
-            with zipfile.ZipFile(zip_buffer, 'r') as zip_ref:    
-                with zip_ref.open(csv_filename) as csv_file:
-                    csv_data = pd.read_csv(csv_file)
-                    print("CSV file read successfully.")
-                    print(csv_data.head())
-        return csv_data
-    
-    csv_filename = 'train.csv'
-    df = read_csv_from_s3(csv_filename)
-    df = df.fillna(-100)
-    label2id = {'Normal/Mild': 0, 'Moderate': 1, 'Severe': 2}
-    df = df.replace(label2id)
-    
 
     class RSNA24Dataset(Dataset):
         def __init__(self, df, phase='train', transform=None):
@@ -128,7 +123,7 @@ def transform_data():
                     pass
                 
             # Axial T2
-            axt2 = glob(f'./cvt_jpg/{st_id}/Axial T2/*.jpg')
+            axt2 = glob_glob(f'./cvt_jpg/{st_id}/Axial T2/*.jpg')
             axt2 = sorted(axt2)
         
             step = len(axt2) / 10.0
@@ -161,5 +156,5 @@ def transform_data():
     with open('spine-degenerative-mriscan-classification.pkl', 'wb') as f:
         pickle.dump(model_dataset, f)
     return model_dataset
-
+    
 transform_data()
