@@ -37,7 +37,7 @@ import torch
 import os
 from torchvision.datasets import ImageFolder
 from torchvision import datasets
-import pickle
+import dill as pickle
 
 def read_csv_from_s3(csv_filename):
         s3 = boto3.client('s3')
