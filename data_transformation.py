@@ -40,6 +40,11 @@ from torchvision import datasets
 import dill as pickle
 
 def transform_data():
+    
+    AUG_PROB = 0.75
+    IMG_SIZE = [512, 512]
+    IN_CHANS = 30
+    
     data_transform = A.Compose([
         A.RandomBrightnessContrast(brightness_limit=(-0.2, 0.2), contrast_limit=(-0.2, 0.2), p=AUG_PROB),
         A.OneOf([
@@ -78,9 +83,6 @@ def transform_data():
     label2id = {'Normal/Mild': 0, 'Moderate': 1, 'Severe': 2}
     df = df.replace(label2id)
     
-    AUG_PROB = 0.75
-    IMG_SIZE = [512, 512]
-    IN_CHANS = 30
 
     class RSNA24Dataset(Dataset):
         def __init__(self, df, phase='train', transform=None):
