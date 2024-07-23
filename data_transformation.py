@@ -7,7 +7,7 @@ import cv2
 import math, random
 import numpy as np
 import pandas as pd
-from glob import glob as glob_glob  # Change import to avoid name conflict
+from glob import glob
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 from sklearn.model_selection import KFold
@@ -123,7 +123,7 @@ def transform_data():
                     pass
                 
             # Axial T2
-            axt2 = glob_glob(f'./cvt_jpg/{st_id}/Axial T2/*.jpg')
+            axt2 = glob(f'./cvt_jpg/{st_id}/Axial T2/*.jpg')
             axt2 = sorted(axt2)
         
             step = len(axt2) / 10.0
