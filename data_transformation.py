@@ -101,12 +101,7 @@ def transform_data():
               
                 x = x.transpose(2, 0, 1)
                 
-                # Prepare labels in the format "column name: label"
-                label_dict = {col: labels[i] for i, col in enumerate(self.df.columns[1:])}
-                label_formatted = [(col, label_dict[col]) for col in self.df.columns[1:]]
-                #print("label_formatted ============",label_formatted)
-                
-                return x, label_formatted
+                return x, labels
 
     model_dataset = RSNA24Dataset(df, phase='train', transform=data_transform)
     #for i in range(len(model_dataset)):
