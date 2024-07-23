@@ -110,7 +110,7 @@ def transform_data():
 
     model_dataset = RSNA24Dataset(df, phase='train', transform=data_transform)
     #for i in range(len(model_dataset)):
-    img, ann = model_dataset[i]
+    img, ann = model_dataset[1]
     print("iiiiiiii", img)
     print("aaaaaaaaa:", ann)
         
