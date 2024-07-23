@@ -123,7 +123,7 @@ def transform_data():
                     pass
                 
             # Axial T2
-            axt2 = glob(f'./cvt_jpg/{st_id}/Axial T2/*.jpg')
+            axt2 = glob.glob(f'./cvt_jpg/{st_id}/Axial T2/*.jpg')
             axt2 = sorted(axt2)
         
             step = len(axt2) / 10.0
